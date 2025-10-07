@@ -1,32 +1,50 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import { scrambleWords as allScrambleWords } from '@/lib/scramble-words';
 import { Loader2 } from 'lucide-react';
+import type { Difficulty } from '@/app/GameClient';
 
 type WordScrambleGameProps = {
   stake: number;
+  difficulty: Difficulty;
   setPlayerScore: (score: number) => void;
   setBotScore: (score: number) => void;
   setGameState: (state: 'results') => void;
 };
 
-const ROUNDS = 3;
-const TIME_PER_QUESTION = 10;
-
-const getShuffledWords = (count: number) => {
-    const shuffled = [...allScrambleWords].sort(() => 0.5 - Math.random());
+const getShuffledWords = (count: number, difficulty: Difficulty) => {
+    const filteredWords = allScrambleWords.filter(word => {
+        const len = word.answer.length;
+        if (difficulty === 'easy') return len <= 6;
+        if (difficulty === 'medium') return len > 6 && len <= 9;
+        if (difficulty === 'hard') return len > 9;
+        return true;
+    });
+    const shuffled = [...filteredWords].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
 };
 
-export default function WordScrambleGame({ stake, setPlayerScore, setBotScore, setGameState }: WordScrambleGameProps) {
-  const [words] = useState(() => getShuffledWords(ROUNDS));
+export default function WordScrambleGame({ stake, difficulty, setPlayerScore, setBotScore, setGameState }: WordScrambleGameProps) {
+    const { rounds, timePerQuestion } = useMemo(() => {
+        switch (difficulty) {
+          case 'hard':
+            return { rounds: 5, timePerQuestion: 8 };
+          case 'medium':
+            return { rounds: 4, timePerQuestion: 10 };
+          case 'easy':
+          default:
+            return { rounds: 3, timePerQuestion: 12 };
+        }
+      }, [difficulty]);
+
+  const [words] = useState(() => getShuffledWords(rounds, difficulty));
   const [currentRound, setCurrentRound] = useState(0);
-  const [timer, setTimer] = useState(TIME_PER_QUESTION);
+  const [timer, setTimer] = useState(timePerQuestion);
   const [playerGuess, setPlayerGuess] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [playerReactionTime, setPlayerReactionTime] = useState(0);
@@ -36,8 +54,11 @@ export default function WordScrambleGame({ stake, setPlayerScore, setBotScore, s
   const [isPlayerCorrect, setIsPlayerCorrect] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setBotReactionTime(Math.random() * 4 + 2); // 2-6 seconds for bot
-  }, [currentRound]);
+    let botSpeed = 4; // Medium
+    if (difficulty === 'easy') botSpeed = 5;
+    if (difficulty === 'hard') botSpeed = 3;
+    setBotReactionTime(Math.random() * 2 + botSpeed);
+  }, [currentRound, difficulty]);
 
   useEffect(() => {
     if (showResult || isEndingGame) return;
@@ -47,14 +68,14 @@ export default function WordScrambleGame({ stake, setPlayerScore, setBotScore, s
         if (prev <= 1) {
           clearInterval(interval);
           handleGuess(playerGuess, true); // Time's up
-          return TIME_PER_QUESTION;
+          return timePerQuestion;
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [currentRound, showResult, isEndingGame]);
+  }, [currentRound, showResult, isEndingGame, timePerQuestion]);
 
   const finishGame = (finalPlayerScore: number, finalBotScore: number) => {
     setIsEndingGame(true);
@@ -69,7 +90,7 @@ export default function WordScrambleGame({ stake, setPlayerScore, setBotScore, s
   const handleGuess = (guess: string, timedOut = false) => {
     if (showResult) return;
 
-    const reactionTime = timedOut ? TIME_PER_QUESTION : TIME_PER_QUESTION - timer + (Math.random() * 0.5);
+    const reactionTime = timedOut ? timePerQuestion : timePerQuestion - timer + (Math.random() * 0.5);
     setPlayerReactionTime(reactionTime);
     setShowResult(true);
 
@@ -93,12 +114,12 @@ export default function WordScrambleGame({ stake, setPlayerScore, setBotScore, s
     setScore(updatedScore);
 
     setTimeout(() => {
-      if (currentRound + 1 < ROUNDS) {
+      if (currentRound + 1 < rounds) {
         setCurrentRound(currentRound + 1);
         setPlayerGuess('');
         setShowResult(false);
         setIsPlayerCorrect(null);
-        setTimer(TIME_PER_QUESTION);
+        setTimer(timePerQuestion);
       } else {
         finishGame(updatedScore.player, updatedScore.bot);
       }
@@ -128,10 +149,10 @@ export default function WordScrambleGame({ stake, setPlayerScore, setBotScore, s
       className="w-full max-w-2xl p-6 md:p-8 rounded-2xl bg-card/80 backdrop-blur-sm shadow-2xl border border-primary/20"
     >
       <div className="flex justify-between items-center mb-4">
-        <p className="font-bold">Round {currentRound + 1}/{ROUNDS}</p>
+        <p className="font-bold">Round {currentRound + 1}/{rounds}</p>
         <p className="font-bold text-lg text-accent">{timer}s</p>
       </div>
-      <Progress value={(timer / TIME_PER_QUESTION) * 100} className="mb-6 h-2" />
+      <Progress value={(timer / timePerQuestion) * 100} className="mb-6 h-2" />
 
       <AnimatePresence mode="wait">
         <motion.div

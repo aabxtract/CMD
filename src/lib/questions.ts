@@ -50,3 +50,31 @@ export const questions = [
     answer: "Litecoin (LTC)",
   }
 ];
+
+export const web3Questions = [
+    {
+      question: "What is Layer 2 in blockchain?",
+      options: ["A type of consensus", "A scaling solution", "A privacy feature"],
+      answer: "A scaling solution",
+    },
+    {
+      question: "What does 'EVM' stand for?",
+      options: ["Ethereum Virtual Machine", "Ethereum Verified Module", "Electronic Voting Machine"],
+      answer: "Ethereum Virtual Machine",
+    },
+    {
+        question: "What is a 'DAO'?",
+        options: ["Digital Asset Organization", "Decentralized Autonomous Organization", "Data Access Object"],
+        answer: "Decentralized Autonomous Organization"
+    },
+    {
+        question: "What is the primary purpose of a 'whitepaper' in a crypto project?",
+        options: ["Marketing material", "Legal disclaimer", "Technical project description"],
+        answer: "Technical project description"
+    },
+    {
+        question: "Which consensus mechanism does Ethereum currently use?",
+        options: ["Proof of Work", "Proof of Stake", "Proof of Authority"],
+        answer: "Proof of Stake"
+    }
+];

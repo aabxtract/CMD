@@ -7,13 +7,13 @@ import type { GameMode } from '@/app/GameClient';
 
 type GameSelectionProps = {
   setGameMode: (mode: GameMode) => void;
-  setGameState: (state: 'staking') => void;
+  setGameState: (state: 'difficulty-selection') => void;
 };
 
 export default function GameSelection({ setGameMode, setGameState }: GameSelectionProps) {
   const handleSelectGame = (mode: GameMode) => {
     setGameMode(mode);
-    setGameState('staking');
+    setGameState('difficulty-selection');
   };
 
   return (

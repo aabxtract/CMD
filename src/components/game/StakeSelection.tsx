@@ -4,17 +4,19 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import type { GameMode } from '@/app/GameClient';
+import type { GameMode, Difficulty } from '@/app/GameClient';
 
 type StakeSelectionProps = {
   setStake: (stake: number) => void;
   setGameState: (state: 'playing') => void;
   gameMode: GameMode;
+  difficulty: Difficulty;
+  multiplier: number;
 };
 
 const stakeOptions = [0.005, 0.01, 0.05];
 
-export default function StakeSelection({ setStake, setGameState, gameMode }: StakeSelectionProps) {
+export default function StakeSelection({ setStake, setGameState, gameMode, difficulty, multiplier }: StakeSelectionProps) {
   const [balance, setBalance] = useState(0.1);
   const [selectedStake, setSelectedStake] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,11 +39,11 @@ export default function StakeSelection({ setStake, setGameState, gameMode }: Sta
       className="w-full max-w-md p-8 rounded-2xl bg-card/80 backdrop-blur-sm shadow-2xl border border-primary/20 text-center"
     >
       <h2 className="text-3xl font-bold font-headline mb-2">Choose Your Stake 💰</h2>
-      <p className="text-sm text-accent font-semibold mb-4">
-        Game Mode: {gameMode === 'quiz' ? 'Crypto Quiz' : 'Word Scramble'}
-      </p>
+      <div className="text-sm text-muted-foreground mb-4 space-y-1 capitalize">
+        <p>Game Mode: {gameMode === 'quiz' ? 'Crypto Quiz' : 'Word Scramble'}</p>
+        <p>Difficulty: {difficulty} ({multiplier}x Reward)</p>
+      </div>
       <p className="text-muted-foreground mb-6">Your Balance: {balance.toFixed(4)} $MON</p>
-
 
       <div className="grid grid-cols-3 gap-4 mb-8">
         {stakeOptions.map((stake) => (

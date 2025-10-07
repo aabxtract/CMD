@@ -1,31 +1,43 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
-import { questions as allQuestions } from '@/lib/questions';
+import { questions as allQuestions, web3Questions } from '@/lib/questions';
 import { Loader2 } from 'lucide-react';
+import type { Difficulty } from '@/app/GameClient';
 
 type QuizGameProps = {
   stake: number;
+  difficulty: Difficulty;
   setPlayerScore: (score: number) => void;
   setBotScore: (score: number) => void;
   setGameState: (state: 'results') => void;
 };
 
-const ROUNDS = 3;
-const TIME_PER_QUESTION = 10;
-
-const getShuffledQuestions = (count: number) => {
-    const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+const getShuffledQuestions = (count: number, difficulty: Difficulty) => {
+    const questionPool = difficulty === 'hard' ? [...allQuestions, ...web3Questions] : allQuestions;
+    const shuffled = [...questionPool].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
 };
 
-export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameState }: QuizGameProps) {
-  const [questions] = useState(() => getShuffledQuestions(ROUNDS));
+export default function QuizGame({ stake, difficulty, setPlayerScore, setBotScore, setGameState }: QuizGameProps) {
+  const { rounds, timePerQuestion } = useMemo(() => {
+    switch (difficulty) {
+      case 'hard':
+        return { rounds: 5, timePerQuestion: 6 };
+      case 'medium':
+        return { rounds: 4, timePerQuestion: 8 };
+      case 'easy':
+      default:
+        return { rounds: 3, timePerQuestion: 10 };
+    }
+  }, [difficulty]);
+
+  const [questions] = useState(() => getShuffledQuestions(rounds, difficulty));
   const [currentRound, setCurrentRound] = useState(0);
-  const [timer, setTimer] = useState(TIME_PER_QUESTION);
+  const [timer, setTimer] = useState(timePerQuestion);
   const [playerAnswer, setPlayerAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [playerReactionTime, setPlayerReactionTime] = useState(0);
@@ -35,8 +47,11 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
   const [isEndingGame, setIsEndingGame] = useState(false);
 
   useEffect(() => {
-    setBotReactionTime(Math.random() * 2 + 1); // 1-3 seconds for bot
-  }, [currentRound]);
+    let botSpeed = 2; // Medium
+    if (difficulty === 'easy') botSpeed = 3;
+    if (difficulty === 'hard') botSpeed = 1.5;
+    setBotReactionTime(Math.random() * 2 + botSpeed); // Bot reaction time based on difficulty
+  }, [currentRound, difficulty]);
 
   useEffect(() => {
     if (showResult || isEndingGame) return;
@@ -46,18 +61,17 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
         if (prev <= 1) {
           clearInterval(interval);
           handleAnswer(null); // Time's up
-          return TIME_PER_QUESTION;
+          return timePerQuestion;
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [currentRound, showResult, isEndingGame]);
+  }, [currentRound, showResult, isEndingGame, timePerQuestion]);
 
   const finishGame = (finalPlayerScore: number, finalBotScore: number) => {
     setIsEndingGame(true);
-    // Simulate API call to record game result
     setTimeout(() => {
       setPlayerScore(finalPlayerScore);
       setBotScore(finalBotScore);
@@ -69,13 +83,17 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
   const handleAnswer = (answer: string | null) => {
     if (playerAnswer !== null) return;
 
-    const reactionTime = TIME_PER_QUESTION - timer + (Math.random() * 0.5);
+    const reactionTime = timePerQuestion - timer + (Math.random() * 0.5);
     setPlayerReactionTime(reactionTime);
     setPlayerAnswer(answer);
     setShowResult(true);
 
     const isPlayerCorrect = answer === questions[currentRound].answer;
-    const isBotCorrect = Math.random() > 0.3;
+    
+    let botCorrectness = 0.7; // Medium
+    if (difficulty === 'easy') botCorrectness = 0.5;
+    if (difficulty === 'hard') botCorrectness = 0.9;
+    const isBotCorrect = Math.random() < botCorrectness;
 
     let newPlayerScore = score.player;
     let newBotScore = score.bot;
@@ -102,11 +120,11 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
     setScore(updatedScore);
 
     setTimeout(() => {
-      if (currentRound + 1 < ROUNDS) {
+      if (currentRound + 1 < rounds) {
         setCurrentRound(currentRound + 1);
         setPlayerAnswer(null);
         setShowResult(false);
-        setTimer(TIME_PER_QUESTION);
+        setTimer(timePerQuestion);
       } else {
         finishGame(updatedScore.player, updatedScore.bot);
       }
@@ -137,13 +155,13 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
       className="w-full max-w-2xl p-6 md:p-8 rounded-2xl bg-card/80 backdrop-blur-sm shadow-2xl border border-primary/20"
     >
       <div className="flex justify-between items-center mb-4">
-        <p className="font-bold">Round {currentRound + 1}/{ROUNDS}</p>
+        <p className="font-bold">Round {currentRound + 1}/{rounds}</p>
         <div className="flex items-center gap-4">
             <span className="text-amber-400 font-bold">🔥 {streak}</span>
             <p className="font-bold text-lg text-accent">{timer}s</p>
         </div>
       </div>
-      <Progress value={(timer / TIME_PER_QUESTION) * 100} className="mb-6 h-2" />
+      <Progress value={(timer / timePerQuestion) * 100} className="mb-6 h-2" />
 
       <AnimatePresence mode="wait">
         <motion.div
