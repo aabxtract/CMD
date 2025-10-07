@@ -9,9 +9,11 @@
     "build": "NODE_ENV=production next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "postinstall": "patch-package"
   },
   "dependencies": {
+    "@farcaster/core": "^0.4.0",
     "@genkit-ai/google-genai": "^1.20.0",
     "@genkit-ai/next": "^1.20.0",
     "@hookform/resolvers": "^4.1.3",
@@ -44,9 +46,9 @@
     "embla-carousel-react": "^8.6.0",
     "firebase": "^11.9.1",
     "framer-motion": "^11.2.12",
+    "frames.js": "^0.15.1",
     "genkit": "^1.20.0",
-    "lucide-react": "^0.475.0",
-    "next": "15.3.3",
+    "next": "14.2.5",
     "patch-package": "^8.0.0",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",

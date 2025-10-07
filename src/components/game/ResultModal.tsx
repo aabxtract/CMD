@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import Link from 'next/link';
 
 type ResultModalProps = {
   playerScore: number;
@@ -29,6 +30,12 @@ export default function ResultModal({ playerScore, botScore, stake, onPlayAgain 
       });
     }
   }, [playerWon]);
+
+  const farcasterShareUrl = useMemo(() => {
+    const text = encodeURIComponent(`I scored ${playerScore}:${botScore} in Crypto Mind Duel! Can you beat me?`);
+    const embedUrl = `${process.env.NEXT_PUBLIC_HOST}/frames/result?playerScore=${playerScore}&botScore=${botScore}&stake=${stake}`;
+    return `https://warpcast.com/~/compose?text=${text}&embeds[]=${embedUrl}`;
+  }, [playerScore, botScore, stake]);
 
   return (
     <>
@@ -67,8 +74,10 @@ export default function ResultModal({ playerScore, botScore, stake, onPlayAgain 
           <Button onClick={onPlayAgain} size="lg" className="font-bold text-lg glow-on-hover">
             Play Again
           </Button>
-          <Button variant="outline" size="lg" className="font-bold text-lg" disabled>
-            Share to Farcaster
+          <Button variant="outline" size="lg" asChild className="font-bold text-lg">
+             <Link href={farcasterShareUrl} target="_blank">
+                Share to Farcaster
+             </Link>
           </Button>
         </div>
       </motion.div>
