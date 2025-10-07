@@ -28,6 +28,12 @@ export default function GameClient() {
     setGameState('staking');
   };
 
+  const handleGoHome = () => {
+    setPlayerScore(0);
+    setBotScore(0);
+    setGameState('game-selection');
+  };
+
   const renderGameState = () => {
     switch (gameState) {
       case 'game-selection':
@@ -80,6 +86,7 @@ export default function GameClient() {
             multiplier={multiplier}
             difficulty={difficulty}
             onPlayAgain={handlePlayAgain}
+            onGoHome={handleGoHome}
           />
         );
       case 'landing':

@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import Link from 'next/link';
 import type { Difficulty } from '@/app/GameClient';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Home } from 'lucide-react';
 
 type ResultModalProps = {
   playerScore: number;
@@ -15,9 +15,10 @@ type ResultModalProps = {
   multiplier: number;
   difficulty: Difficulty;
   onPlayAgain: () => void;
+  onGoHome: () => void;
 };
 
-export default function ResultModal({ playerScore, botScore, stake, multiplier, difficulty, onPlayAgain }: ResultModalProps) {
+export default function ResultModal({ playerScore, botScore, stake, multiplier, difficulty, onPlayAgain, onGoHome }: ResultModalProps) {
   const playerWon = playerScore > botScore;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isClaiming, setIsClaiming] = useState(false);
@@ -123,6 +124,9 @@ export default function ResultModal({ playerScore, botScore, stake, multiplier, 
               </Link>
             </Button>
           </div>
+           <Button onClick={onGoHome} variant="link" className="mt-2 text-muted-foreground">
+              <Home className="mr-2 h-4 w-4" /> Go to Game Selection
+            </Button>
         </div>
       </motion.div>
     </>
