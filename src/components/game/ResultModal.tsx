@@ -43,7 +43,7 @@ export default function ResultModal({ playerScore, botScore, stake, onPlayAgain 
       <motion.div
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center p-8 rounded-2xl bg-card/80 backdrop-blur-sm shadow-2xl border border-primary/20"
+        className="text-center p-8 rounded-2xl bg-card/80 backdrop-blur-sm shadow-2xl border border-primary/20 max-w-lg w-full"
       >
         <h2 className="text-5xl font-bold font-headline mb-4">
           You {playerWon ? 'Won!' : 'Lost'}
@@ -75,9 +75,9 @@ export default function ResultModal({ playerScore, botScore, stake, onPlayAgain 
             Play Again
           </Button>
           <Button variant="outline" size="lg" asChild className="font-bold text-lg">
-             <Link href={farcasterShareUrl} target="_blank">
+            <Link href={farcasterShareUrl} target="_blank">
                 Share to Farcaster
-             </Link>
+            </Link>
           </Button>
         </div>
       </motion.div>

@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { Trophy } from 'lucide-react';
 
 type LandingScreenProps = {
-  setGameState: (state: 'staking') => void;
+  setGameState: (state: 'game-selection') => void;
 };
 
 export default function LandingScreen({ setGameState }: LandingScreenProps) {
@@ -45,7 +45,7 @@ export default function LandingScreen({ setGameState }: LandingScreenProps) {
 
         <div className="flex flex-col sm:flex-row gap-4">
           <Button
-            onClick={() => setGameState('staking')}
+            onClick={() => setGameState('game-selection')}
             size="lg"
             className="font-bold text-lg glow-on-hover"
           >
@@ -59,10 +59,6 @@ export default function LandingScreen({ setGameState }: LandingScreenProps) {
           >
             Leaderboard
           </Button>
-        </div>
-        <div className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-green-400"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
-            <span>Gasless Smart Account Enabled (MetaMask)</span>
         </div>
       </motion.div>
       <Leaderboard isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />

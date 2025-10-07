@@ -1,0 +1,17 @@
+export const scrambleWords = [
+  { scrambled: "tcoinbi", answer: "Bitcoin" },
+  { scrambled: "muehtere", answer: "Ethereum" },
+  { scrambled: "ppielr", answer: "Ripple" },
+  { scrambled: "tehcian", answer: "Chain" },
+  { scrambled: "kclabnicho", answer: "Blockchain" },
+  { scrambled: "fewalotls", answer: "Wallets" },
+  { scrambled: "tfn", answer: "NFT" },
+  { scrambled: "fed", answer: "DeFi" },
+  { scrambled: "tkaing", answer: "Staking" },
+  { scrambled: "ninimg", answer: "Mining" },
+  { scrambled: "yrctpo", answer: "Crypto" },
+  { scrambled: "toshisa", answer: "Satoshi" },
+  { scrambled: "liteonci", answer: "Litecoin" },
+  { scrambled: "radacon", answer: "Cardano" },
+  { scrambled: "cebiann", answer: "Binance" },
+];

@@ -30,11 +30,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  env: {
-    NEXT_PUBLIC_HOST: process.env.NODE_ENV === 'development'
-      ? 'http://localhost:9002'
-      : 'https://<your-production-url>',
-  }
 };
 
 export default nextConfig;

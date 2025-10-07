@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
-import { questions as allQuestions } from '@/lib/questions';
+import { scrambleWords as allScrambleWords } from '@/lib/scramble-words';
 import { Loader2 } from 'lucide-react';
 
-type QuizGameProps = {
+type WordScrambleGameProps = {
   stake: number;
   setPlayerScore: (score: number) => void;
   setBotScore: (score: number) => void;
@@ -17,25 +18,25 @@ type QuizGameProps = {
 const ROUNDS = 3;
 const TIME_PER_QUESTION = 10;
 
-const getShuffledQuestions = (count: number) => {
-    const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+const getShuffledWords = (count: number) => {
+    const shuffled = [...allScrambleWords].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
 };
 
-export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameState }: QuizGameProps) {
-  const [questions] = useState(() => getShuffledQuestions(ROUNDS));
+export default function WordScrambleGame({ stake, setPlayerScore, setBotScore, setGameState }: WordScrambleGameProps) {
+  const [words] = useState(() => getShuffledWords(ROUNDS));
   const [currentRound, setCurrentRound] = useState(0);
   const [timer, setTimer] = useState(TIME_PER_QUESTION);
-  const [playerAnswer, setPlayerAnswer] = useState<string | null>(null);
+  const [playerGuess, setPlayerGuess] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [playerReactionTime, setPlayerReactionTime] = useState(0);
   const [botReactionTime, setBotReactionTime] = useState(0);
   const [score, setScore] = useState({ player: 0, bot: 0 });
-  const [streak, setStreak] = useState(0);
   const [isEndingGame, setIsEndingGame] = useState(false);
+  const [isPlayerCorrect, setIsPlayerCorrect] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setBotReactionTime(Math.random() * 2 + 1); // 1-3 seconds for bot
+    setBotReactionTime(Math.random() * 4 + 2); // 2-6 seconds for bot
   }, [currentRound]);
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
       setTimer((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          handleAnswer(null); // Time's up
+          handleGuess(playerGuess, true); // Time's up
           return TIME_PER_QUESTION;
         }
         return prev - 1;
@@ -57,7 +58,6 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
 
   const finishGame = (finalPlayerScore: number, finalBotScore: number) => {
     setIsEndingGame(true);
-    // Simulate API call to record game result
     setTimeout(() => {
       setPlayerScore(finalPlayerScore);
       setBotScore(finalBotScore);
@@ -66,36 +66,27 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
     }, 1500);
   };
 
-  const handleAnswer = (answer: string | null) => {
-    if (playerAnswer !== null) return;
+  const handleGuess = (guess: string, timedOut = false) => {
+    if (showResult) return;
 
-    const reactionTime = TIME_PER_QUESTION - timer + (Math.random() * 0.5);
+    const reactionTime = timedOut ? TIME_PER_QUESTION : TIME_PER_QUESTION - timer + (Math.random() * 0.5);
     setPlayerReactionTime(reactionTime);
-    setPlayerAnswer(answer);
     setShowResult(true);
 
-    const isPlayerCorrect = answer === questions[currentRound].answer;
-    const isBotCorrect = Math.random() > 0.3;
-
+    const correct = guess.toLowerCase() === words[currentRound].answer.toLowerCase();
+    setIsPlayerCorrect(correct);
+    
     let newPlayerScore = score.player;
     let newBotScore = score.bot;
 
-    if (isPlayerCorrect && !isBotCorrect) {
-      newPlayerScore++;
-      setStreak(s => s + 1);
-    } else if (!isPlayerCorrect && isBotCorrect) {
-      newBotScore++;
-      setStreak(0);
-    } else if (isPlayerCorrect && isBotCorrect) {
+    if (correct) {
       if (reactionTime < botReactionTime) {
         newPlayerScore++;
-        setStreak(s => s + 1);
       } else {
         newBotScore++;
-        setStreak(0);
       }
     } else {
-        setStreak(0);
+      newBotScore++;
     }
 
     const updatedScore = { player: newPlayerScore, bot: newBotScore };
@@ -104,8 +95,9 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
     setTimeout(() => {
       if (currentRound + 1 < ROUNDS) {
         setCurrentRound(currentRound + 1);
-        setPlayerAnswer(null);
+        setPlayerGuess('');
         setShowResult(false);
+        setIsPlayerCorrect(null);
         setTimer(TIME_PER_QUESTION);
       } else {
         finishGame(updatedScore.player, updatedScore.bot);
@@ -113,8 +105,7 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
     }, 2000);
   };
 
-  const currentQuestion = questions[currentRound];
-  const isCorrect = playerAnswer === currentQuestion.answer;
+  const currentWord = words[currentRound];
 
   if (isEndingGame) {
     return (
@@ -138,10 +129,7 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
     >
       <div className="flex justify-between items-center mb-4">
         <p className="font-bold">Round {currentRound + 1}/{ROUNDS}</p>
-        <div className="flex items-center gap-4">
-            <span className="text-amber-400 font-bold">🔥 {streak}</span>
-            <p className="font-bold text-lg text-accent">{timer}s</p>
-        </div>
+        <p className="font-bold text-lg text-accent">{timer}s</p>
       </div>
       <Progress value={(timer / TIME_PER_QUESTION) * 100} className="mb-6 h-2" />
 
@@ -153,33 +141,30 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
           exit={{ opacity: 0, x: -50 }}
           transition={{ duration: 0.3 }}
         >
-          <h3 className="text-xl md:text-2xl font-semibold text-center mb-8 min-h-[84px] flex items-center justify-center">
-            {currentQuestion.question}
-          </h3>
-          <div className="grid grid-cols-1 gap-4">
-            {currentQuestion.options.map((option) => (
-              <Button
-                key={option}
-                onClick={() => handleAnswer(option)}
-                disabled={playerAnswer !== null}
-                className={`h-16 text-lg justify-start p-4 transition-colors duration-300 relative
-                  ${
-                    showResult && option === currentQuestion.answer
-                      ? 'bg-green-500 hover:bg-green-600 text-white border-green-400'
-                      : ''
-                  }
-                  ${
-                    showResult && option !== currentQuestion.answer && option === playerAnswer
-                      ? 'bg-red-500 hover:bg-red-600 text-white border-red-400'
-                      : 'hover:bg-primary/10'
-                  }
-                `}
-                variant="outline"
-              >
-                {option}
-              </Button>
-            ))}
-          </div>
+          <h3 className="text-xl md:text-2xl font-semibold text-center mb-4">Unscramble the word:</h3>
+          <p className="text-4xl md:text-5xl font-bold text-center tracking-widest mb-8 font-code uppercase">
+            {currentWord.scrambled}
+          </p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleGuess(playerGuess);
+            }}
+            className="flex gap-2"
+          >
+            <Input
+              type="text"
+              value={playerGuess}
+              onChange={(e) => setPlayerGuess(e.target.value)}
+              placeholder="Your guess..."
+              disabled={showResult}
+              className="text-lg h-14 text-center"
+              autoFocus
+            />
+            <Button type="submit" size="lg" className="h-14" disabled={showResult}>
+              Guess
+            </Button>
+          </form>
         </motion.div>
       </AnimatePresence>
 
@@ -189,16 +174,15 @@ export default function QuizGame({ stake, setPlayerScore, setBotScore, setGameSt
             animate={{ opacity: 1, scale: 1 }}
             className="mt-6 text-center"
         >
-            <h4 className={`text-3xl font-bold ${isCorrect ? 'text-green-500' : 'text-red-500'}`}>
-                {isCorrect ? "Correct ✅" : "Wrong ❌"}
+            <h4 className={`text-3xl font-bold ${isPlayerCorrect ? 'text-green-500' : 'text-red-500'}`}>
+                {isPlayerCorrect ? "Correct ✅" : "Wrong ❌"}
             </h4>
             <div className="flex justify-around mt-4 text-muted-foreground">
                 <p>Your speed: {playerReactionTime.toFixed(2)}s</p>
                 <p>Bot speed: {botReactionTime.toFixed(2)}s</p>
             </div>
-            {playerAnswer !== null && !isCorrect && <p className="mt-2 text-sm text-center">Correct answer: {questions[currentRound].answer}</p>}
-            {isCorrect && playerReactionTime > botReactionTime && <p className="text-sm mt-2 font-bold text-red-500">Bot was faster!</p>}
-            {!isCorrect && <p className="text-sm mt-2 font-bold text-muted-foreground">Bot's brain lagged 🤖💀</p>}
+            {!isPlayerCorrect && <p className="mt-2 text-sm text-center">Correct word: {words[currentRound].answer}</p>}
+            {isPlayerCorrect && playerReactionTime > botReactionTime && <p className="text-sm mt-2 font-bold text-red-500">Bot was faster!</p>}
         </motion.div>
       )}
     </motion.div>
