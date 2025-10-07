@@ -12,7 +12,7 @@ const handleRequest = frames(async (ctx) => {
 
     return {
         image: (
-            <div tw="flex flex-col items-center justify-center w-full h-full bg-purple-800 text-white p-8">
+            <div tw="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-purple-600 to-blue-500 text-white p-8">
                 <h1 tw="text-6xl font-bold">Crypto Mind Duel</h1>
                 <div tw="flex flex-col items-center justify-center mt-8 p-8 rounded-2xl bg-white/10">
                     <h2 tw="text-5xl font-bold mb-4">
