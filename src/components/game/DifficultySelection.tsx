@@ -14,7 +14,7 @@ type DifficultySelectionProps = {
 };
 
 const difficultyOptions: { level: Difficulty; title: string; desc: string; icon: React.ReactNode, multiplier: number }[] = [
-  { level: 'easy', title: 'Easy', desc: 'Fewer points, low reward', icon: <Puzzle className="w-8 h-8 text-green-500" />, multiplier: 1 },
+  { level: 'easy', title: 'Easy', desc: 'Fewer points, low reward', icon: <Puzzle className="w-8 h-8 text-green-500" />, multiplier: 1.025 },
   { level: 'medium', title: 'Medium', desc: 'More challenging, moderate reward', icon: <Settings className="w-8 h-8 text-yellow-500" />, multiplier: 1.5 },
   { level: 'hard', title: 'Hard', desc: 'Fastest thinking, high reward', icon: <Flame className="w-8 h-8 text-red-500" />, multiplier: 2 },
 ];

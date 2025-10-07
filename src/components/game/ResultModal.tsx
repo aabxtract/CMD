@@ -26,7 +26,7 @@ export default function ResultModal({ playerScore, botScore, stake, multiplier, 
 
   const reward = useMemo(() => {
     if (!playerWon) return 0;
-    return stake * (1 + (multiplier -1) * 0.8) // Base stake + 80% of bonus multiplier
+    return stake * multiplier;
   }, [stake, multiplier, playerWon]);
 
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function ResultModal({ playerScore, botScore, stake, multiplier, 
           >
             {winMessage}
             <p className="text-2xl font-bold">You won {reward.toFixed(4)} $MON</p>
-            <p className="text-sm font-bold mt-2 text-foreground">Base: {stake} $MON × {multiplier} = {(stake * multiplier).toFixed(4)}</p>
+            <p className="text-sm font-bold mt-2 text-foreground">Stake: {stake} $MON × {multiplier} = {reward.toFixed(4)}</p>
           </motion.div>
         ) : (
           <p className="text-lg text-red-500 mb-8">
