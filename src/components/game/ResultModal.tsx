@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import Link from 'next/link';
 import type { Difficulty } from '@/app/GameClient';
+import { Loader2 } from 'lucide-react';
 
 type ResultModalProps = {
   playerScore: number;
@@ -19,10 +20,13 @@ type ResultModalProps = {
 export default function ResultModal({ playerScore, botScore, stake, multiplier, difficulty, onPlayAgain }: ResultModalProps) {
   const playerWon = playerScore > botScore;
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [isClaimed, setIsClaimed] = useState(false);
 
   const reward = useMemo(() => {
+    if (!playerWon) return 0;
     return stake * (1 + (multiplier -1) * 0.8) // Base stake + 80% of bonus multiplier
-  }, [stake, multiplier]);
+  }, [stake, multiplier, playerWon]);
 
   useEffect(() => {
     if (playerWon && canvasRef.current) {
@@ -41,6 +45,15 @@ export default function ResultModal({ playerScore, botScore, stake, multiplier, 
       });
     }
   }, [playerWon, difficulty]);
+
+  const handleClaim = () => {
+    setIsClaiming(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsClaiming(false);
+      setIsClaimed(true);
+    }, 2000);
+  };
 
   const farcasterShareUrl = useMemo(() => {
     const text = encodeURIComponent(`I scored ${playerScore}:${botScore} in Crypto Mind Duel on ${difficulty} mode! Can you beat me?`);
@@ -93,15 +106,23 @@ export default function ResultModal({ playerScore, botScore, stake, multiplier, 
           </p>
         )}
 
-        <div className="flex gap-4 justify-center">
-          <Button onClick={onPlayAgain} size="lg" className="font-bold text-lg glow-on-hover">
-            Play Again
-          </Button>
-          <Button variant="outline" size="lg" asChild className="font-bold text-lg">
-            <Link href={farcasterShareUrl} target="_blank">
-                Share to Farcaster
-            </Link>
-          </Button>
+        <div className="flex flex-col gap-4 justify-center">
+          {playerWon && (
+            <Button onClick={handleClaim} size="lg" className="font-bold text-lg glow-on-hover" disabled={isClaiming || isClaimed}>
+              {isClaiming && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+              {isClaiming ? 'Claiming...' : isClaimed ? 'Rewards Claimed ✅' : 'Claim Rewards'}
+            </Button>
+          )}
+          <div className="flex gap-4 justify-center">
+            <Button onClick={onPlayAgain} size="lg" className="font-bold text-lg" variant={playerWon ? 'secondary' : 'default'}>
+              Play Again
+            </Button>
+            <Button variant="outline" size="lg" asChild className="font-bold text-lg">
+              <Link href={farcasterShareUrl} target="_blank">
+                  Share to Farcaster
+              </Link>
+            </Button>
+          </div>
         </div>
       </motion.div>
     </>
